@@ -1,0 +1,239 @@
+body {
+    font-family: "Helvetica Neue", "Arial", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+    padding: 0;
+    margin: 0;
+    background: #f8f8f8;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+header {
+    background: #78BBE6;
+    color: white;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 50px;
+    flex-shrink: 0;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+}
+
+a.header {
+    font-size: 22px;
+    margin: 0;
+    font-weight: bold;
+    text-decoration: none;
+    color: white;
+}
+
+.nav-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 30px;
+}
+
+.nav-list-item a {
+    text-decoration: none;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    transition: 0.2s;
+}
+
+.nav-list-item a:hover {
+    color: #F99F48;
+}
+
+.main-container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    height: calc(100vh - 70px);
+}
+
+.sidebar {
+    width: 340px;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    z-index: 20;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+}
+
+.sidebar-header {
+    padding: 15px;
+    background: #1B435D;
+}
+
+.sidebar-content {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.sidebar-footer {
+    padding: 15px;
+    background: #1B435D;
+}
+
+.line-group-title {
+    font-size: 13px;
+    font-weight: bold;
+    color: #fff;
+    background: #1B435D;
+    padding: 4px 8px;
+    margin: 0px 0px 15px 0px;
+    border-radius: 4px;
+}
+
+.station-control {
+    margin-bottom: 10px;
+    border-bottom: 1px solid #AAAEB3;
+    padding-bottom: 5px;
+}
+
+.station-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.station-name {
+    font-weight: bold;
+    font-size: 14px;
+    color: #333;
+}
+
+.rank-value {
+    font-size: 11px;
+    font-weight: bold;
+    color: #666;
+    background: #eee;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+input[type="range"] {
+    width: 100%;
+    cursor: pointer;
+}
+
+.viewport {
+    flex: 1;
+    background: #EFEFEF;
+    position: relative;
+    overflow: hidden;
+    cursor: grab;
+}
+
+.viewport:active {
+    cursor: grabbing;
+}
+
+#canvas-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0;
+}
+
+svg {
+    background: white;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+    display: block;
+}
+
+button.btn-primary {
+    width: 48%;
+    padding: 10px;
+    background: #78BBE6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+button.btn-primary:hover {
+    background: #6095B8;
+}
+
+button.btn-secondary {
+    width: 48%;
+    padding: 10px;
+    background: #F99F48;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+button.btn-secondary:hover {
+    background: #C77F39;
+}
+
+button.btn-csv {
+    width: 48%;
+    padding: 10px;
+    background: #B1B5B9;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+button.btn-csv:hover {
+    background: #8D9094;
+}
+
+.btn-group {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0px;
+}
+
+span.reset {
+    border: 1px solid #ccc;
+    background: transparent;
+    padding: 4px 10px;
+    border-radius: 15px;
+}
+
+.zoom-overlay {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 8px 12px;
+    border-radius: 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    font-size: 12px;
+    color: #555;
+    backdrop-filter: blur(5px);
+    transition: 0.2s;
+    cursor: pointer;
+}
+
+.zoom-overlay:hover {
+    background: rgba(255, 255, 255, 1.00);
+    transform: scale(1.05);
+}
+
+@font-face {
+    font-family: 'KeioLogo';
+    src: local('Arial Black'), local('Impact');
+}
