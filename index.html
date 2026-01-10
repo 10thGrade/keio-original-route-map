@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>京王線 路線図メーカー</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <a class="header" href=".">京王線 路線図メーカー</a>
+        <nav>
+            <ul class="nav-list">
+                <li class="nav-list-item"><a href="https://www.keio.co.jp/global/routes/" target="_blank">公式路線図</a></li>
+                <li class="nav-list-item"><a href="https://github.com/10thGrade/" target="_blank">GitHub</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="main-container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="btn-group">
+                    <button class="btn-csv" onclick="document.getElementById('csvInput').click()">CSV読込</button>
+                    <button class="btn-csv" onclick="exportCSV()">CSV保存</button>
+                    <input type="file" id="csvInput" accept=".csv" style="display: none;" onchange="importCSV(this)">
+                </div>
+            </div>
+            <div class="sidebar-content" id="controls"></div>
+            <div class="sidebar-footer">
+                <div class="btn-group">
+                    <button class="btn-primary" onclick="downloadSVG()">SVG保存</button>
+                    <button class="btn-secondary" onclick="downloadPNG()">PNG保存</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="viewport" id="viewport">
+            <div id="canvas-layer">
+                <svg id="mapSvg" xmlns="http://www.w3.org/2000/svg"></svg>
+            </div>
+            <div class="zoom-overlay" onclick="resetView()">
+                <span class="reset">リセット</span>
+                <span>ホイール拡大 / ドラッグ移動</span>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>
