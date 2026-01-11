@@ -224,10 +224,23 @@ function importCSV(csvData) {
 // ダウンロード(SVG形式)
 function downloadSVG() {
     const elmSvg = document.getElementById('mapSvg');
+    const height = parseInt(elmSvg.getAttribute("height"));
+    
+    const attributionText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    attributionText.setAttribute("x", 20);
+    attributionText.setAttribute("y", height - 20);
+    attributionText.setAttribute("font-family", "Arial, sans-serif");
+    attributionText.setAttribute("font-size", "30");
+    attributionText.setAttribute("fill", "#333");
+    attributionText.textContent = "Made by https://10thgrade.github.io/keio-original-route-map/";
+    elmSvg.appendChild(attributionText);
+    
     const svgLink = document.createElement('a');
     svgLink.href = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(elmSvg)], { type: "image/svg+xml;charset=utf-8" }));
     svgLink.download = "keio_original_map.svg";
     svgLink.click();
+    
+    elmSvg.removeChild(attributionText);
 }
 // ダウンロード(PNG形式)
 function downloadPNG() {
