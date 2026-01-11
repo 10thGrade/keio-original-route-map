@@ -121,22 +121,51 @@ function initApp() {
             }
             const elmCtrlStation = document.createElement('div');
             elmCtrlStation.className = 'station-control';
-            elmCtrlStation.innerHTML = `
-                <div class="station-header">
-                    <span class="station-name">${station.name}</span>
-                    <span class="rank-value" id="label-${station.id}">${getRankName(stationRanks[station.id])}</span>
-                </div>
-                <input type="range" min="1" max="5" value="${stationRanks[station.id]}" oninput="updateRank('${station.id}', this.value)">
-            `;
+            
+            if (station.group === "ino") {
+                if (stationRanks[station.id] !== 1 && stationRanks[station.id] !== 4) {
+                    stationRanks[station.id] = 1;
+                }
+                if (stationRanks[station.id] === 4) {
+                    sliderValue = 1;
+                } else {
+                    sliderValue = 0;
+                }
+                elmCtrlStation.innerHTML = `
+                    <div class="station-header">
+                        <span class="station-name">${station.name}</span>
+                        <span class="rank-value" id="label-${station.id}">${getRankName(stationRanks[station.id])}</span>
+                    </div>
+                    <input type="range" min="0" max="1" step="1" value="${sliderValue}" oninput="updateRank('${station.id}', this.value, '${groupName}')">
+                `;
+            } else {
+                elmCtrlStation.innerHTML = `
+                    <div class="station-header">
+                        <span class="station-name">${station.name}</span>
+                        <span class="rank-value" id="label-${station.id}">${getRankName(stationRanks[station.id])}</span>
+                    </div>
+                    <input type="range" min="1" max="5" value="${stationRanks[station.id]}" oninput="updateRank('${station.id}', this.value, '${groupName}')">
+                `;
+            }
             elmCtrls.appendChild(elmCtrlStation);
         });
     }
     drawMap();
 }
 // 駅ランク更新
-function updateRank(stationId, rank) { 
-    stationRanks[stationId] = parseInt(rank); 
-    document.getElementById(`label-${stationId}`).innerText = getRankName(parseInt(rank)); 
+function updateRank(stationId, rank, group) { 
+    if (group == "ino") {
+        if (parseInt(rank) === 1) {
+            actualRank = 4;
+        } else {
+            actualRank = 1;
+        }
+        stationRanks[stationId] = actualRank;
+        document.getElementById(`label-${stationId}`).innerText = getRankName(actualRank);
+    } else {
+        stationRanks[stationId] = parseInt(rank); 
+        document.getElementById(`label-${stationId}`).innerText = getRankName(parseInt(rank)); 
+    }
     drawMap(); 
 }
 // CSV出力
@@ -605,7 +634,7 @@ function drawInokashiraLine(canvas, positions) {
         inoStations.forEach(s => {
             const p = positions[s.id];
             const rank = stationRanks[s.id];
-            const isExpress = (rank >= 5);
+            const isExpress = (rank === 4);
             
             let lxExp = 0, lyExp = 0, lxLoc = 0, lyLoc = 0;
             lxExp = p.x + dxExp;
