@@ -310,7 +310,7 @@ function initPanZoom() {
 }
 // キャンバス初期化
 function resetView() {
-    viewState = { scale: 0.3, x: 50, y: 50 };
+    viewState = { scale: 0.3, x: 30, y: 30 };
     initPanZoom();
 }
 // 駅描画位置計算
