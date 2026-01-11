@@ -99,11 +99,26 @@ let stationRanks = {};
 let viewState = { scale: 0.3, x: 30, y: 30, isDragging: false };
 
 window.onload = function() {
+    checkDevice();
     initApp();
     initPanZoom();
 };
 
 // 関数: 機能
+// デバイス検出
+function checkDevice() {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isTablet = /iPad|Android/i.test(navigator.userAgent) && !/Mobile/i.test(navigator.userAgent);
+    const hasTouchScreen = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const isSmallScreen = window.innerWidth < 768;
+    
+    if (isMobile || isTablet || (hasTouchScreen && isSmallScreen)) {
+        const warningElement = document.getElementById('mobile-warning');
+        if (warningElement) {
+            warningElement.style.display = 'flex';
+        }
+    }
+}
 // アプリ初期化
 function initApp() {
     const elmCtrls = document.getElementById('controls');
