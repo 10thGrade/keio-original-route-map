@@ -96,12 +96,20 @@ let STATIONS = [
 ];
 
 let stationRanks = {};
-let viewState = { scale: 0.3, x: 30, y: 30, isDragging: false };
+let viewState = { scale: 0, x: 0, y: 0, isDragging: false };
 
 window.onload = function() {
     checkDevice();
     initApp();
     initPanZoom();
+    window.addEventListener('resize', function() {
+            calculateView();
+            const elmLayer = document.getElementById('canvas-layer');
+            if (elmLayer) {
+                elmLayer.style.transform = `translate(${viewState.x}px, ${viewState.y}px) scale(${viewState.scale})`;
+            }
+        }
+    );
 };
 
 // 関数: 機能
@@ -166,6 +174,11 @@ function initApp() {
         });
     }
     drawMap();
+    calculateView();
+    const elmLayer = document.getElementById('canvas-layer');
+    if (elmLayer) {
+        elmLayer.style.transform = `translate(${viewState.x}px, ${viewState.y}px) scale(${viewState.scale})`;
+    }
 }
 // 駅ランク更新
 function updateRank(stationId, rank, group) { 
@@ -308,9 +321,41 @@ function initPanZoom() {
     };
     app();
 }
+// 表示位置計算
+function calculateView() {
+    const elmSvg = document.getElementById('mapSvg');
+    const elmView = document.getElementById('viewport');
+    
+    if (!elmSvg || !elmView) {
+        return;
+    }
+    
+    const svgWidth = parseFloat(elmSvg.getAttribute("width")) || 0;
+    const svgHeight = parseFloat(elmSvg.getAttribute("height")) || 0;
+    const viewWidth = elmView.clientWidth;
+    const viewHeight = elmView.clientHeight;
+    
+    if (svgWidth === 0 || svgHeight === 0 || viewWidth === 0 || viewHeight === 0) {
+        return;
+    }
+    
+    const padding = 0.1;
+    const scaleX = (viewWidth * (1 - padding * 2)) / svgWidth;
+    const scaleY = (viewHeight * (1 - padding * 2)) / svgHeight;
+    const scale = Math.min(scaleX, scaleY, 1.0);
+    const scaledWidth = svgWidth * scale;
+    const scaledHeight = svgHeight * scale;
+    const x = (viewWidth - scaledWidth) / 2;
+    const y = (viewHeight - scaledHeight) / 2;
+    
+    viewState.x = x;
+    viewState.y = y;
+    viewState.scale = scale;
+}
+
 // キャンバス初期化
 function resetView() {
-    viewState = { scale: 0.3, x: 30, y: 30 };
+    calculateView();
     initPanZoom();
 }
 // 駅描画位置計算
