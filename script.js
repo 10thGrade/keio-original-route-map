@@ -245,6 +245,17 @@ function downloadSVG() {
 // ダウンロード(PNG形式)
 function downloadPNG() {
     const elmPng = document.getElementById('mapSvg');
+    const height = parseInt(elmPng.getAttribute("height"));
+    
+    const attributionText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    attributionText.setAttribute("x", 20);
+    attributionText.setAttribute("y", height - 20);
+    attributionText.setAttribute("font-family", "Arial, sans-serif");
+    attributionText.setAttribute("font-size", "30");
+    attributionText.setAttribute("fill", "#333");
+    attributionText.textContent = "Made by https://10thgrade.github.io/keio-original-route-map/";
+    elmPng.appendChild(attributionText);
+
     const elmCanvas = document.createElement('canvas');
     elmCanvas.width = parseInt(elmPng.getAttribute("width"));
     elmCanvas.height = parseInt(elmPng.getAttribute("height"));
@@ -260,6 +271,8 @@ function downloadPNG() {
         pngLink.click();
     };
     elmImage.src = "data:image/svg+xml;charset=utf-8;base64," + btoa(unescape(encodeURIComponent(new XMLSerializer().serializeToString(elmPng))));
+
+    elmPng.removeChild(attributionText);
 }
 // キャンバス操作
 function initPanZoom() {
