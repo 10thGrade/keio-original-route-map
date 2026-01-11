@@ -77,22 +77,22 @@ let STATIONS = [
     { id: "takao", name: "高尾", num: 52, dist: 60, defaultRank: 5, group: "takao" },
     { id: "takaosan", name: "高尾山口", num: 53, dist: 60, defaultRank: 5, group: "takao" },
     // Inokashira Line
-    { id: "shibuya", name: "渋谷", num: 1, dist: 70, defaultRank: 5, group: "ino" },
+    { id: "shibuya", name: "渋谷", num: 1, dist: 70, defaultRank: 4, group: "ino" },
     { id: "shinsen", name: "神泉", num: 2, dist: 70, defaultRank: 1, group: "ino" },
     { id: "komaba", name: "駒場東大前", num: 3, dist: 70, defaultRank: 1, group: "ino" },
     { id: "ikenoue", name: "池ノ上", num: 4, dist: 70, defaultRank: 1, group: "ino" },
-    { id: "shimokita", name: "下北沢", num: 5, dist: 70, defaultRank: 5, group: "ino" },
+    { id: "shimokita", name: "下北沢", num: 5, dist: 70, defaultRank: 4, group: "ino" },
     { id: "shindaita", name: "新代田", num: 6, dist: 70, defaultRank: 1, group: "ino" },
     { id: "higashimatsu", name: "東松原", num: 7, dist: 0, defaultRank: 1, group: "ino" },
-    { id: "eifuku", name: "永福町", num: 9, dist: 0, defaultRank: 5, group: "ino" },
+    { id: "eifuku", name: "永福町", num: 9, dist: 0, defaultRank: 4, group: "ino" },
     { id: "nishieifuku", name: "西永福", num: 10, dist: 70, defaultRank: 1, group: "ino" },
     { id: "hamada", name: "浜田山", num: 11, dist: 70, defaultRank: 1, group: "ino" },
     { id: "takaido", name: "高井戸", num: 12, dist: 70, defaultRank: 1, group: "ino" },
     { id: "fujimigaoka", name: "富士見ヶ丘", num: 13, dist: 70, defaultRank: 1, group: "ino" },
-    { id: "kugayama", name: "久我山", num: 14, dist: 70, defaultRank: 5, group: "ino" },
+    { id: "kugayama", name: "久我山", num: 14, dist: 70, defaultRank: 4, group: "ino" },
     { id: "mitakadai", name: "三鷹台", num: 15, dist: 70, defaultRank: 1, group: "ino" },
     { id: "inokashira", name: "井の頭公園", num: 16, dist: 70, defaultRank: 1, group: "ino" },
-    { id: "kichijoji", name: "吉祥寺", num: 17, dist: 70, defaultRank: 5, group: "ino" }
+    { id: "kichijoji", name: "吉祥寺", num: 17, dist: 70, defaultRank: 4, group: "ino" }
 ];
 
 let stationRanks = {};
