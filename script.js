@@ -316,8 +316,23 @@ function initPanZoom() {
     };
     elmView.onwheel = e => {
         e.preventDefault();
-        viewState.scale = Math.min(Math.max(0.1, viewState.scale - e.deltaY * 0.001), 5.0);
-        app();
+
+        const rect = elmView.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        const oldScale = viewState.scale;
+        let newScale = oldScale - e.deltaY * 0.001;
+        newScale = Math.min(Math.max(0.1, newScale), 5.0);
+
+        if (newScale !== oldScale) {
+            const ratio = newScale / oldScale;
+            viewState.x = mouseX - (mouseX - viewState.x) * ratio;
+            viewState.y = mouseY - (mouseY - viewState.y) * ratio;
+            
+            viewState.scale = newScale;
+            app();
+        }
     };
     app();
 }
