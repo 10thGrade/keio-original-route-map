@@ -258,16 +258,11 @@ span.reset {
         right: 0;
         bottom: 0;
         width: 100%;
-        max-height: 56px;
+        height: 56px;
         border-radius: 16px 16px 0 0;
         box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
-        transition: max-height 0.25s ease;
         overflow: hidden;
         padding-bottom: env(safe-area-inset-bottom, 0px);
-    }
-
-    .sidebar.expanded {
-        max-height: 75vh;
     }
 
     .sidebar-handle {
@@ -276,7 +271,8 @@ span.reset {
         align-items: center;
         height: 28px;
         flex-shrink: 0;
-        cursor: pointer;
+        cursor: grab;
+        touch-action: none;
     }
 
     .sidebar-handle .handle-bar {

@@ -108,6 +108,7 @@ let viewState = { scale: 0, x: 0, y: 0, isDragging: false };
 window.onload = function() {
     initApp();
     initPanZoom();
+    initSheetDrag();
     window.addEventListener('resize', function() {
             calculateView();
             const elmLayer = document.getElementById('canvas-layer');
@@ -427,9 +428,45 @@ function resetView() {
     calculateView();
     initPanZoom();
 }
-// サイドバー(モバイルではボトムシート)の開閉切り替え
-function toggleSidebar() {
-    document.querySelector('.sidebar').classList.toggle('expanded');
+// ボトムシート(モバイル)のドラッグ操作
+const SHEET_MIN_HEIGHT = 56;
+function isMobileLayout() {
+    return window.matchMedia('(max-width: 768px)').matches;
+}
+function initSheetDrag() {
+    const elmSidebar = document.querySelector('.sidebar');
+    const elmHandle = document.querySelector('.sidebar-handle');
+    let startY = 0, startHeight = 0, dragging = false;
+
+    elmHandle.onpointerdown = e => {
+        if (!isMobileLayout()) {
+            return;
+        }
+        elmHandle.setPointerCapture(e.pointerId);
+        dragging = true;
+        startY = e.clientY;
+        startHeight = elmSidebar.getBoundingClientRect().height;
+    };
+    elmHandle.onpointermove = e => {
+        if (!dragging) {
+            return;
+        }
+        const maxHeight = window.innerHeight * 0.9;
+        let newHeight = startHeight + (startY - e.clientY);
+        newHeight = Math.min(Math.max(newHeight, SHEET_MIN_HEIGHT), maxHeight);
+        elmSidebar.style.height = `${newHeight}px`;
+    };
+    const endDrag = () => {
+        dragging = false;
+    };
+    elmHandle.onpointerup = endDrag;
+    elmHandle.onpointercancel = endDrag;
+
+    window.addEventListener('resize', () => {
+        if (!isMobileLayout()) {
+            elmSidebar.style.height = '';
+        }
+    });
 }
 // CSV・画像出力メニュー(モバイル)の開閉切り替え
 function toggleMobileMenu() {
