@@ -11,6 +11,7 @@ const STATION_STATUS = [
     { rank: RANK_PASS, name: "通過" },
     { rank: RANK_VACANT, name: "更地" }
 ];
+const INO_RANK_LEVELS = [RANK_VACANT, RANK_PASS, 1, 4]; // 更地, 通過, 各停, 急行
 const COLOR_KEIO_MAGENTA = "#dd0077";
 const COLOR_KEIO_BLUE = "#0F4E8C";
 
@@ -152,20 +153,16 @@ function initApp() {
             elmCtrlStation.className = 'station-control';
             
             if (station.group === "ino") {
-                if (stationRanks[station.id] !== 1 && stationRanks[station.id] !== 4) {
+                if (!INO_RANK_LEVELS.includes(stationRanks[station.id])) {
                     stationRanks[station.id] = 1;
                 }
-                if (stationRanks[station.id] === 4) {
-                    sliderValue = 1;
-                } else {
-                    sliderValue = 0;
-                }
+                const sliderValue = INO_RANK_LEVELS.indexOf(stationRanks[station.id]);
                 elmCtrlStation.innerHTML = `
                     <div class="station-header">
                         <span class="station-name">${station.name}</span>
                         <span class="rank-value" id="label-${station.id}">${getRankName(stationRanks[station.id])}</span>
                     </div>
-                    <input type="range" min="0" max="1" step="1" value="${sliderValue}" oninput="updateRank('${station.id}', this.value, '${groupName}')">
+                    <input type="range" min="0" max="${INO_RANK_LEVELS.length - 1}" step="1" value="${sliderValue}" oninput="updateRank('${station.id}', this.value, '${groupName}')">
                 `;
             } else {
                 elmCtrlStation.innerHTML = `
@@ -189,11 +186,7 @@ function initApp() {
 // 駅ランク更新
 function updateRank(stationId, rank, group) { 
     if (group == "ino") {
-        if (parseInt(rank) === 1) {
-            actualRank = 4;
-        } else {
-            actualRank = 1;
-        }
+        const actualRank = INO_RANK_LEVELS[parseInt(rank)];
         stationRanks[stationId] = actualRank;
         document.getElementById(`label-${stationId}`).innerText = getRankName(actualRank);
     } else {
@@ -743,7 +736,8 @@ function drawInokashiraLine(canvas, positions) {
             const p = positions[s.id];
             const rank = stationRanks[s.id];
             const isExpress = (rank === 4);
-            
+            const isVacant = (rank === RANK_VACANT);
+
             let lxExp = 0, lyExp = 0, lxLoc = 0, lyLoc = 0;
             lxExp = p.x + dxExp;
             lyExp = p.y + dyExp;
@@ -765,14 +759,18 @@ function drawInokashiraLine(canvas, positions) {
                 drawRect(canvas, p.x + dxLoc - 26, p.y + dyLoc + 20, 52, 80 + (s.name.length * 32), 26, 26, getRankColor(4));
             }
             // 停車点
-            drawDot(canvas, lxLoc, lyLoc, getRankColor(1));
+            if (rank >= 1) {
+                drawDot(canvas, lxLoc, lyLoc, getRankColor(1));
+            }
             if (isExpress) {
                 drawDot(canvas, lxExp, lyExp, getRankColor(4));
             }
-            // 駅番号バッジ
-            drawBadge(canvas, lxLoc, lyLoc + 45, s.num, "IN", COLOR_KEIO_BLUE);
-            // 駅名
-            drawStationName(canvas, lxLoc + 15, lyLoc + 70, s.name, isExpress, "verticalIno");
+            if (!isVacant) {
+                // 駅番号バッジ
+                drawBadge(canvas, lxLoc, lyLoc + 45, s.num, "IN", COLOR_KEIO_BLUE);
+                // 駅名
+                drawStationName(canvas, lxLoc + 15, lyLoc + 70, s.name, isExpress, "verticalIno");
+            }
         });
     }
 }
