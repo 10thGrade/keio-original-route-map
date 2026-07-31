@@ -82,6 +82,11 @@ keio-original-route-map/
 #### エクスポート
 - `downloadSVG()`: SVG形式で路線図を保存
 - `downloadPNG()`: PNG形式で路線図を保存
+- `shareOrDownload()`: 保存処理の共通部分。モバイルではWeb Share APIでiOSの共有シートを表示し、
+  非対応環境(PCなど)では従来通り`<a download>`でダウンロードする
+- `refreshMapImageCache()`: PNG共有用に、路線図のラスター画像を事前にデコードしてキャッシュしておく
+  (iOSの`navigator.share()`はクリックからの同期処理内で呼ぶ必要があるため、クリック時に非同期の
+  画像デコードを挟まないようにする)
 
 #### 操作
 - `initPanZoom()`: パン・ズーム機能の初期化(マウスドラッグ・タッチパン・ピンチズームに対応)
@@ -123,6 +128,9 @@ keio-original-route-map/
   折りたたみ)
 - **CSV・画像出力**: 路線図右上の丸いボタン(⋯)から、CSV読込・CSV保存・SVG保存・PNG保存をまとめて
   操作できる。メニュー外をタップすると自動的に閉じる
+- **保存・共有**: iOS Safariなど`<a download>`が機能しない環境では、CSV保存・SVG保存・PNG保存の
+  いずれもiOSの共有シートが開く。PNG保存は画像として認識されるため、共有シートから「写真」アプリへ
+  直接保存できる
 
 ## ライセンス
 

@@ -14,6 +14,7 @@ const STATION_STATUS = [
 const INO_RANK_LEVELS = [RANK_VACANT, RANK_PASS, 1, 4]; // 更地, 通過, 各停, 急行
 const COLOR_KEIO_MAGENTA = "#dd0077";
 const COLOR_KEIO_BLUE = "#0F4E8C";
+const ATTRIBUTION_TEXT = "Made by keio.10th-grade.com";
 
 // ジオメトリ設定
 const LINE_WIDTH = 13;  // 線路幅
@@ -200,16 +201,36 @@ function applySliderFill(input) {
     const percent = ((parseFloat(input.value) - parseFloat(input.min)) / (parseFloat(input.max) - parseFloat(input.min))) * 100;
     input.style.setProperty('--range-percent', `${percent}%`);
 }
+// 共有 or ダウンロード(iOS Safariは<a download>が機能しないため、モバイルでは共有シートを使う)
+async function shareOrDownload(blob, filename, mimeType) {
+    if (isMobileLayout() && navigator.share && navigator.canShare) {
+        const file = new File([blob], filename, { type: mimeType });
+        if (navigator.canShare({ files: [file] })) {
+            try {
+                await navigator.share({ files: [file] });
+                return;
+            } catch (e) {
+                if (e.name === 'AbortError') {
+                    return;
+                }
+                // 共有に失敗した場合は通常のダウンロードにフォールバック
+            }
+        }
+    }
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(link.href);
+}
 // CSV出力
 function exportCSV() {
-    let csvData = "data:text/csv;charset=utf-8,id,name,num,dist,rank,group\n";
+    let csvContent = "id,name,num,dist,rank,group\n";
     STATIONS.forEach(s => {
-        csvData += `${s.id},${s.name},${s.num},${s.dist},${stationRanks[s.id] ?? s.defaultRank},${s.group}\n`;
+        csvContent += `${s.id},${s.name},${s.num},${s.dist},${stationRanks[s.id] ?? s.defaultRank},${s.group}\n`;
     });
-    const csvLink = document.createElement("a");
-    csvLink.href = encodeURI(csvData);
-    csvLink.download = "keio_original_map.csv";
-    csvLink.click();
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8" });
+    shareOrDownload(blob, "keio_original_map.csv", "text/csv");
 }
 // CSV入力
 function importCSV(csvData) {
@@ -249,43 +270,88 @@ function downloadSVG() {
     attributionText.setAttribute("font-family", "Arial, sans-serif");
     attributionText.setAttribute("font-size", "30");
     attributionText.setAttribute("fill", "#333");
-    attributionText.textContent = "Made by https://10thgrade.github.io/keio-original-route-map/";
+    attributionText.textContent = ATTRIBUTION_TEXT;
     elmSvg.appendChild(attributionText);
     
-    const svgLink = document.createElement('a');
-    svgLink.href = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(elmSvg)], { type: "image/svg+xml;charset=utf-8" }));
-    svgLink.download = "keio_original_map.svg";
-    svgLink.click();
-    
+    const blob = new Blob([new XMLSerializer().serializeToString(elmSvg)], { type: "image/svg+xml;charset=utf-8" });
+    shareOrDownload(blob, "keio_original_map.svg", "image/svg+xml");
+
     elmSvg.removeChild(attributionText);
+}
+// PNG共有用のベース画像キャッシュ(クレジット文字は含まない)
+// iOS Safariのnavigator.share()は、クリックからの同期処理の連鎖内で呼ばないと
+// ユーザー操作起因の呼び出しとみなされず失敗するため、SVG→画像のデコードを
+// 事前に済ませておき、クリック時は同期処理のみで完結できるようにする
+let cachedMapImage = null;
+let cacheRefreshTimer = null;
+function refreshMapImageCache() {
+    clearTimeout(cacheRefreshTimer);
+    cacheRefreshTimer = setTimeout(() => {
+        const elmSvg = document.getElementById('mapSvg');
+        const img = new Image();
+        img.onload = () => {
+            cachedMapImage = img;
+        };
+        img.src = "data:image/svg+xml;charset=utf-8;base64," + btoa(unescape(encodeURIComponent(new XMLSerializer().serializeToString(elmSvg))));
+    }, 300);
+}
+// data URL(PNG)を同期的にBlobへ変換
+function dataUrlToBlob(dataUrl) {
+    const [meta, base64] = dataUrl.split(',');
+    const mime = meta.match(/:(.*?);/)[1];
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+    return new Blob([bytes], { type: mime });
 }
 // ダウンロード(PNG形式)
 function downloadPNG() {
     const elmPng = document.getElementById('mapSvg');
+    const width = parseInt(elmPng.getAttribute("width"));
     const height = parseInt(elmPng.getAttribute("height"));
-    
+
+    if (cachedMapImage && cachedMapImage.naturalWidth === width && cachedMapImage.naturalHeight === height) {
+        // キャッシュ済み画像があれば、クリックから同期的に完結させて共有シートを開く
+        const elmCanvas = document.createElement('canvas');
+        elmCanvas.width = width;
+        elmCanvas.height = height;
+        const ctx = elmCanvas.getContext('2d');
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(cachedMapImage, 0, 0);
+        ctx.font = "30px Arial, sans-serif";
+        ctx.fillStyle = "#333";
+        ctx.fillText(ATTRIBUTION_TEXT, 20, height - 20);
+
+        const blob = dataUrlToBlob(elmCanvas.toDataURL("image/png"));
+        shareOrDownload(blob, "keio_original_map.png", "image/png");
+        return;
+    }
+
+    // キャッシュが未準備の場合のフォールバック(従来の非同期経路)
     const attributionText = document.createElementNS("http://www.w3.org/2000/svg", "text");
     attributionText.setAttribute("x", 20);
     attributionText.setAttribute("y", height - 20);
     attributionText.setAttribute("font-family", "Arial, sans-serif");
     attributionText.setAttribute("font-size", "30");
     attributionText.setAttribute("fill", "#333");
-    attributionText.textContent = "Made by https://10thgrade.github.io/keio-original-route-map/";
+    attributionText.textContent = ATTRIBUTION_TEXT;
     elmPng.appendChild(attributionText);
 
     const elmCanvas = document.createElement('canvas');
-    elmCanvas.width = parseInt(elmPng.getAttribute("width"));
-    elmCanvas.height = parseInt(elmPng.getAttribute("height"));
+    elmCanvas.width = width;
+    elmCanvas.height = height;
     const ctx = elmCanvas.getContext('2d');
     ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, parseInt(elmPng.getAttribute("width")), parseInt(elmPng.getAttribute("height")));
+    ctx.fillRect(0, 0, width, height);
     const elmImage = new Image();
     elmImage.onload = () => {
         ctx.drawImage(elmImage, 0, 0);
-        const pngLink = document.createElement('a');
-        pngLink.href = elmCanvas.toDataURL("image/png");
-        pngLink.download = "keio_original_map.png";
-        pngLink.click();
+        elmCanvas.toBlob(blob => {
+            shareOrDownload(blob, "keio_original_map.png", "image/png");
+        }, "image/png");
     };
     elmImage.src = "data:image/svg+xml;charset=utf-8;base64," + btoa(unescape(encodeURIComponent(new XMLSerializer().serializeToString(elmPng))));
 
@@ -793,6 +859,8 @@ function drawMap() {
 
     // 路線図ロゴ・ラベル描画
     drawLogoAndLabels(elmCanvas, positions);
+
+    refreshMapImageCache();
 }
 // 井の頭線 描画関数
 function drawInokashiraLine(canvas, positions) {
