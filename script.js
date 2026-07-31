@@ -200,16 +200,36 @@ function applySliderFill(input) {
     const percent = ((parseFloat(input.value) - parseFloat(input.min)) / (parseFloat(input.max) - parseFloat(input.min))) * 100;
     input.style.setProperty('--range-percent', `${percent}%`);
 }
+// 共有 or ダウンロード(iOS Safariは<a download>が機能しないため、モバイルでは共有シートを使う)
+async function shareOrDownload(blob, filename, mimeType) {
+    if (isMobileLayout() && navigator.share && navigator.canShare) {
+        const file = new File([blob], filename, { type: mimeType });
+        if (navigator.canShare({ files: [file] })) {
+            try {
+                await navigator.share({ files: [file] });
+                return;
+            } catch (e) {
+                if (e.name === 'AbortError') {
+                    return;
+                }
+                // 共有に失敗した場合は通常のダウンロードにフォールバック
+            }
+        }
+    }
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(link.href);
+}
 // CSV出力
 function exportCSV() {
-    let csvData = "data:text/csv;charset=utf-8,id,name,num,dist,rank,group\n";
+    let csvContent = "id,name,num,dist,rank,group\n";
     STATIONS.forEach(s => {
-        csvData += `${s.id},${s.name},${s.num},${s.dist},${stationRanks[s.id] ?? s.defaultRank},${s.group}\n`;
+        csvContent += `${s.id},${s.name},${s.num},${s.dist},${stationRanks[s.id] ?? s.defaultRank},${s.group}\n`;
     });
-    const csvLink = document.createElement("a");
-    csvLink.href = encodeURI(csvData);
-    csvLink.download = "keio_original_map.csv";
-    csvLink.click();
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8" });
+    shareOrDownload(blob, "keio_original_map.csv", "text/csv");
 }
 // CSV入力
 function importCSV(csvData) {
@@ -252,11 +272,9 @@ function downloadSVG() {
     attributionText.textContent = "Made by https://10thgrade.github.io/keio-original-route-map/";
     elmSvg.appendChild(attributionText);
     
-    const svgLink = document.createElement('a');
-    svgLink.href = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(elmSvg)], { type: "image/svg+xml;charset=utf-8" }));
-    svgLink.download = "keio_original_map.svg";
-    svgLink.click();
-    
+    const blob = new Blob([new XMLSerializer().serializeToString(elmSvg)], { type: "image/svg+xml;charset=utf-8" });
+    shareOrDownload(blob, "keio_original_map.svg", "image/svg+xml");
+
     elmSvg.removeChild(attributionText);
 }
 // ダウンロード(PNG形式)
@@ -282,10 +300,9 @@ function downloadPNG() {
     const elmImage = new Image();
     elmImage.onload = () => {
         ctx.drawImage(elmImage, 0, 0);
-        const pngLink = document.createElement('a');
-        pngLink.href = elmCanvas.toDataURL("image/png");
-        pngLink.download = "keio_original_map.png";
-        pngLink.click();
+        elmCanvas.toBlob(blob => {
+            shareOrDownload(blob, "keio_original_map.png", "image/png");
+        }, "image/png");
     };
     elmImage.src = "data:image/svg+xml;charset=utf-8;base64," + btoa(unescape(encodeURIComponent(new XMLSerializer().serializeToString(elmPng))));
 
