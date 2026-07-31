@@ -106,44 +106,41 @@ let stationRanks = {};
 let viewState = { scale: 0, x: 0, y: 0, isDragging: false };
 
 window.onload = function() {
-    checkDevice();
     initApp();
     initPanZoom();
+    initSheetDrag();
     window.addEventListener('resize', function() {
             calculateView();
             const elmLayer = document.getElementById('canvas-layer');
             if (elmLayer) {
-                elmLayer.style.transform = `translate(${viewState.x}px, ${viewState.y}px) scale(${viewState.scale})`;
+                elmLayer.style.transform = `translate3d(${viewState.x}px, ${viewState.y}px, 0) scale(${viewState.scale})`;
             }
         }
     );
 };
 
 // 関数: 機能
-// デバイス検出
-function checkDevice() {
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    const isTablet = /iPad|Android/i.test(navigator.userAgent) && !/Mobile/i.test(navigator.userAgent);
-    const hasTouchScreen = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    const isSmallScreen = window.innerWidth < 768;
-    
-    if (isMobile || isTablet || (hasTouchScreen && isSmallScreen)) {
-        const warningElement = document.getElementById('mobile-warning');
-        if (warningElement) {
-            warningElement.style.display = 'flex';
-        }
-    }
-}
 // アプリ初期化
 function initApp() {
     const elmCtrls = document.getElementById('controls');
     elmCtrls.innerHTML = "";
     const groups = { "keio": "京王本線", "sagami": "相模原線", "takao": "高尾線", "ino": "井の頭線" };
     for (let groupName in groups) {
+        const elmGroup = document.createElement('div');
+        elmGroup.className = 'line-group';
+
         const elmGrpTitle = document.createElement('div');
         elmGrpTitle.className = 'line-group-title';
-        elmGrpTitle.textContent = groups[groupName];
-        elmCtrls.appendChild(elmGrpTitle);
+        elmGrpTitle.innerHTML = `<span class="line-group-title-text">${groups[groupName]}</span><span class="line-group-chevron">&#9662;</span>`;
+        elmGrpTitle.onclick = () => elmGroup.classList.toggle('expanded');
+        elmGroup.appendChild(elmGrpTitle);
+
+        const elmGrpBody = document.createElement('div');
+        elmGrpBody.className = 'line-group-body';
+        const elmGrpBodyInner = document.createElement('div');
+        elmGrpBodyInner.className = 'line-group-body-inner';
+        elmGrpBody.appendChild(elmGrpBodyInner);
+        elmGroup.appendChild(elmGrpBody);
 
         STATIONS.filter(s => s.group === groupName).forEach(station => {
             if (stationRanks[station.id] === undefined) {
@@ -162,7 +159,7 @@ function initApp() {
                         <span class="station-name">${station.name}</span>
                         <span class="rank-value" id="label-${station.id}">${getRankName(stationRanks[station.id])}</span>
                     </div>
-                    <input type="range" min="0" max="${INO_RANK_LEVELS.length - 1}" step="1" value="${sliderValue}" oninput="updateRank('${station.id}', this.value, '${groupName}')">
+                    <input type="range" min="0" max="${INO_RANK_LEVELS.length - 1}" step="1" value="${sliderValue}" oninput="updateRank(this, '${station.id}', '${groupName}')">
                 `;
             } else {
                 elmCtrlStation.innerHTML = `
@@ -170,30 +167,38 @@ function initApp() {
                         <span class="station-name">${station.name}</span>
                         <span class="rank-value" id="label-${station.id}">${getRankName(stationRanks[station.id])}</span>
                     </div>
-                    <input type="range" min="-1" max="5" value="${stationRanks[station.id]}" oninput="updateRank('${station.id}', this.value, '${groupName}')">
+                    <input type="range" min="-1" max="5" value="${stationRanks[station.id]}" oninput="updateRank(this, '${station.id}', '${groupName}')">
                 `;
             }
-            elmCtrls.appendChild(elmCtrlStation);
+            applySliderFill(elmCtrlStation.querySelector('input'));
+            elmGrpBodyInner.appendChild(elmCtrlStation);
         });
+        elmCtrls.appendChild(elmGroup);
     }
     drawMap();
     calculateView();
     const elmLayer = document.getElementById('canvas-layer');
     if (elmLayer) {
-        elmLayer.style.transform = `translate(${viewState.x}px, ${viewState.y}px) scale(${viewState.scale})`;
+        elmLayer.style.transform = `translate3d(${viewState.x}px, ${viewState.y}px, 0) scale(${viewState.scale})`;
     }
 }
 // 駅ランク更新
-function updateRank(stationId, rank, group) { 
+function updateRank(input, stationId, group) {
     if (group == "ino") {
-        const actualRank = INO_RANK_LEVELS[parseInt(rank)];
+        const actualRank = INO_RANK_LEVELS[parseInt(input.value)];
         stationRanks[stationId] = actualRank;
         document.getElementById(`label-${stationId}`).innerText = getRankName(actualRank);
     } else {
-        stationRanks[stationId] = parseInt(rank); 
-        document.getElementById(`label-${stationId}`).innerText = getRankName(parseInt(rank)); 
+        stationRanks[stationId] = parseInt(input.value);
+        document.getElementById(`label-${stationId}`).innerText = getRankName(parseInt(input.value));
     }
-    drawMap(); 
+    applySliderFill(input);
+    drawMap();
+}
+// スライダーの塗りつぶし(現在値まで)を反映
+function applySliderFill(input) {
+    const percent = ((parseFloat(input.value) - parseFloat(input.min)) / (parseFloat(input.max) - parseFloat(input.min))) * 100;
+    input.style.setProperty('--range-percent', `${percent}%`);
 }
 // CSV出力
 function exportCSV() {
@@ -292,16 +297,68 @@ function initPanZoom() {
     const elmLayer = document.getElementById('canvas-layer');
     let mouseGrab = false, lx = 0, ly = 0;
     const app = () => {
-        elmLayer.style.transform = `translate(${viewState.x}px, ${viewState.y}px) scale(${viewState.scale})`;
+        elmLayer.style.transform = `translate3d(${viewState.x}px, ${viewState.y}px, 0) scale(${viewState.scale})`;
     };
-    elmView.onmousedown = e => {
-        mouseGrab = true;
-        lx = e.clientX;
-        ly = e.clientY;
-        elmView.style.cursor = 'grabbing';
+
+    // マウスドラッグ・タッチパン・ピンチズームを共通のPointer Eventsで扱う
+    const activePointers = new Map(); // pointerId -> {x, y}
+    let pinchStartDist = 0, pinchStartScale = 1;
+
+    const getActivePoints = () => Array.from(activePointers.values());
+    const getPinchMidpoint = () => {
+        const [a, b] = getActivePoints();
+        return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
     };
-    window.onmousemove = e => {
-        if (mouseGrab) {
+    const getPinchDistance = () => {
+        const [a, b] = getActivePoints();
+        return Math.hypot(a.x - b.x, a.y - b.y);
+    };
+
+    elmView.onpointerdown = e => {
+        if (e.target.closest('.zoom-overlay, .viewport-menu-wrap')) {
+            // オーバーレイ上のボタンを操作中はパン/ピンチ操作を開始しない
+            // (setPointerCaptureするとclickイベントがボタンまで届かなくなるため)
+            return;
+        }
+        elmView.setPointerCapture(e.pointerId);
+        activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+        if (activePointers.size === 1) {
+            mouseGrab = true;
+            lx = e.clientX;
+            ly = e.clientY;
+            elmView.style.cursor = 'grabbing';
+        } else if (activePointers.size === 2) {
+            mouseGrab = false;
+            pinchStartDist = getPinchDistance();
+            pinchStartScale = viewState.scale;
+        }
+    };
+    elmView.onpointermove = e => {
+        if (!activePointers.has(e.pointerId)) {
+            return;
+        }
+        activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+        if (activePointers.size === 2) {
+            const rect = elmView.getBoundingClientRect();
+            const midpoint = getPinchMidpoint();
+            const midX = midpoint.x - rect.left;
+            const midY = midpoint.y - rect.top;
+
+            const oldScale = viewState.scale;
+            let newScale = pinchStartScale * (getPinchDistance() / pinchStartDist);
+            newScale = Math.min(Math.max(0.1, newScale), 5.0);
+
+            if (newScale !== oldScale) {
+                const ratio = newScale / oldScale;
+                viewState.x = midX - (midX - viewState.x) * ratio;
+                viewState.y = midY - (midY - viewState.y) * ratio;
+
+                viewState.scale = newScale;
+                app();
+            }
+        } else if (activePointers.size === 1 && mouseGrab) {
             viewState.x += e.clientX - lx;
             viewState.y += e.clientY - ly;
             lx = e.clientX;
@@ -309,10 +366,26 @@ function initPanZoom() {
             app();
         }
     };
-    window.onmouseup = () => {
-        mouseGrab = false;
-        elmView.style.cursor = 'grab';
+    const endPointer = e => {
+        if (!activePointers.has(e.pointerId)) {
+            return;
+        }
+        activePointers.delete(e.pointerId);
+
+        if (activePointers.size === 1) {
+            // 2本指→1本指への遷移時、残った指の座標でlx/lyを再セットしジャンプを防ぐ
+            const [remaining] = getActivePoints();
+            lx = remaining.x;
+            ly = remaining.y;
+            mouseGrab = true;
+        } else if (activePointers.size === 0) {
+            mouseGrab = false;
+            elmView.style.cursor = 'grab';
+        }
     };
+    elmView.onpointerup = endPointer;
+    elmView.onpointercancel = endPointer;
+
     elmView.onwheel = e => {
         e.preventDefault();
 
@@ -372,6 +445,61 @@ function resetView() {
     calculateView();
     initPanZoom();
 }
+// ボトムシート(モバイル)のドラッグ操作
+const SHEET_MIN_HEIGHT = 56;
+function isMobileLayout() {
+    return window.matchMedia('(max-width: 768px)').matches;
+}
+function initSheetDrag() {
+    const elmSidebar = document.querySelector('.sidebar');
+    const elmHandle = document.querySelector('.sidebar-handle');
+    let startY = 0, startHeight = 0, dragging = false;
+
+    elmHandle.onpointerdown = e => {
+        if (!isMobileLayout()) {
+            return;
+        }
+        elmHandle.setPointerCapture(e.pointerId);
+        dragging = true;
+        startY = e.clientY;
+        startHeight = elmSidebar.getBoundingClientRect().height;
+    };
+    elmHandle.onpointermove = e => {
+        if (!dragging) {
+            return;
+        }
+        const maxHeight = window.innerHeight * 0.9;
+        let newHeight = startHeight + (startY - e.clientY);
+        newHeight = Math.min(Math.max(newHeight, SHEET_MIN_HEIGHT), maxHeight);
+        elmSidebar.style.height = `${newHeight}px`;
+    };
+    const endDrag = () => {
+        dragging = false;
+    };
+    elmHandle.onpointerup = endDrag;
+    elmHandle.onpointercancel = endDrag;
+
+    window.addEventListener('resize', () => {
+        if (!isMobileLayout()) {
+            elmSidebar.style.height = '';
+        }
+    });
+}
+// CSV・画像出力メニュー(モバイル)の開閉切り替え
+function toggleMobileMenu() {
+    document.getElementById('mobile-actions-modal').classList.toggle('open');
+}
+function closeMobileMenu() {
+    document.getElementById('mobile-actions-modal').classList.remove('open');
+}
+// メニュー外タップで自動的に閉じる
+document.addEventListener('click', e => {
+    const menu = document.getElementById('mobile-actions-modal');
+    const btn = document.getElementById('viewport-menu-btn');
+    if (menu.classList.contains('open') && !menu.contains(e.target) && !btn.contains(e.target)) {
+        closeMobileMenu();
+    }
+});
 // 駅描画位置計算
 function calculateGeometry() {
     const positions = {};
