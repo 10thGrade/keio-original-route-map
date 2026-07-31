@@ -420,6 +420,10 @@ function resetView() {
     calculateView();
     initPanZoom();
 }
+// サイドバー(モバイルではボトムシート)の開閉切り替え
+function toggleSidebar() {
+    document.querySelector('.sidebar').classList.toggle('expanded');
+}
 // 駅描画位置計算
 function calculateGeometry() {
     const positions = {};

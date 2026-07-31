@@ -65,6 +65,10 @@ a.header {
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
 }
 
+.sidebar-handle {
+    display: none;
+}
+
 .sidebar-header {
     padding: 15px;
     background: #1B435D;
@@ -237,4 +241,44 @@ span.reset {
 @font-face {
     font-family: 'KeioLogo';
     src: local('Arial Black'), local('Impact');
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        max-height: 56px;
+        border-radius: 16px 16px 0 0;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+        transition: max-height 0.25s ease;
+        overflow: hidden;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    .sidebar.expanded {
+        max-height: 75vh;
+    }
+
+    .sidebar-handle {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 28px;
+        flex-shrink: 0;
+        cursor: pointer;
+    }
+
+    .sidebar-handle .handle-bar {
+        width: 40px;
+        height: 5px;
+        border-radius: 3px;
+        background: #ccc;
+    }
+
+    .sidebar-header, .sidebar-footer {
+        display: none;
+    }
 }
