@@ -113,7 +113,7 @@ window.onload = function() {
             calculateView();
             const elmLayer = document.getElementById('canvas-layer');
             if (elmLayer) {
-                elmLayer.style.transform = `translate(${viewState.x}px, ${viewState.y}px) scale(${viewState.scale})`;
+                elmLayer.style.transform = `translate3d(${viewState.x}px, ${viewState.y}px, 0) scale(${viewState.scale})`;
             }
         }
     );
@@ -179,7 +179,7 @@ function initApp() {
     calculateView();
     const elmLayer = document.getElementById('canvas-layer');
     if (elmLayer) {
-        elmLayer.style.transform = `translate(${viewState.x}px, ${viewState.y}px) scale(${viewState.scale})`;
+        elmLayer.style.transform = `translate3d(${viewState.x}px, ${viewState.y}px, 0) scale(${viewState.scale})`;
     }
 }
 // 駅ランク更新
@@ -297,7 +297,7 @@ function initPanZoom() {
     const elmLayer = document.getElementById('canvas-layer');
     let mouseGrab = false, lx = 0, ly = 0;
     const app = () => {
-        elmLayer.style.transform = `translate(${viewState.x}px, ${viewState.y}px) scale(${viewState.scale})`;
+        elmLayer.style.transform = `translate3d(${viewState.x}px, ${viewState.y}px, 0) scale(${viewState.scale})`;
     };
 
     // マウスドラッグ・タッチパン・ピンチズームを共通のPointer Eventsで扱う
