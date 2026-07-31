@@ -125,11 +125,9 @@ function initApp() {
     const elmCtrls = document.getElementById('controls');
     elmCtrls.innerHTML = "";
     const groups = { "keio": "京王本線", "sagami": "相模原線", "takao": "高尾線", "ino": "井の頭線" };
-    let isFirstGroup = true;
     for (let groupName in groups) {
         const elmGroup = document.createElement('div');
-        elmGroup.className = 'line-group' + (isFirstGroup ? ' expanded' : '');
-        isFirstGroup = false;
+        elmGroup.className = 'line-group';
 
         const elmGrpTitle = document.createElement('div');
         elmGrpTitle.className = 'line-group-title';
