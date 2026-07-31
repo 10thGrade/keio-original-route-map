@@ -103,6 +103,10 @@ a.header {
     border-radius: 4px;
 }
 
+.line-group-chevron {
+    display: none;
+}
+
 .station-control {
     margin-bottom: 10px;
     border-bottom: 1px solid #AAAEB3;
@@ -341,5 +345,25 @@ span.reset {
         border-radius: 6px;
         font-weight: bold;
         cursor: pointer;
+    }
+
+    .line-group-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+    }
+
+    .line-group-chevron {
+        display: inline-block;
+        transition: transform 0.2s;
+    }
+
+    .line-group:not(.expanded) .line-group-chevron {
+        transform: rotate(-90deg);
+    }
+
+    .line-group:not(.expanded) .station-control {
+        display: none;
     }
 }

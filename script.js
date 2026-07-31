@@ -124,11 +124,17 @@ function initApp() {
     const elmCtrls = document.getElementById('controls');
     elmCtrls.innerHTML = "";
     const groups = { "keio": "京王本線", "sagami": "相模原線", "takao": "高尾線", "ino": "井の頭線" };
+    let isFirstGroup = true;
     for (let groupName in groups) {
+        const elmGroup = document.createElement('div');
+        elmGroup.className = 'line-group' + (isFirstGroup ? ' expanded' : '');
+        isFirstGroup = false;
+
         const elmGrpTitle = document.createElement('div');
         elmGrpTitle.className = 'line-group-title';
-        elmGrpTitle.textContent = groups[groupName];
-        elmCtrls.appendChild(elmGrpTitle);
+        elmGrpTitle.innerHTML = `<span class="line-group-title-text">${groups[groupName]}</span><span class="line-group-chevron">&#9662;</span>`;
+        elmGrpTitle.onclick = () => elmGroup.classList.toggle('expanded');
+        elmGroup.appendChild(elmGrpTitle);
 
         STATIONS.filter(s => s.group === groupName).forEach(station => {
             if (stationRanks[station.id] === undefined) {
@@ -158,8 +164,9 @@ function initApp() {
                     <input type="range" min="-1" max="5" value="${stationRanks[station.id]}" oninput="updateRank('${station.id}', this.value, '${groupName}')">
                 `;
             }
-            elmCtrls.appendChild(elmCtrlStation);
+            elmGroup.appendChild(elmCtrlStation);
         });
+        elmCtrls.appendChild(elmGroup);
     }
     drawMap();
     calculateView();
