@@ -17,18 +17,7 @@
                 <li class="nav-list-item"><a href="https://github.com/10thGrade/keio-original-route-map/" target="_blank">GitHub</a></li>
             </ul>
         </nav>
-        <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="メニュー">&#9776;</button>
     </header>
-
-    <div id="mobile-actions-modal" class="mobile-actions-modal">
-        <div class="mobile-actions-content">
-            <button class="btn-csv" onclick="document.getElementById('csvInput').click()">CSV読込</button>
-            <button class="btn-csv" onclick="exportCSV()">CSV保存</button>
-            <button class="btn-primary" onclick="downloadSVG()">SVG保存</button>
-            <button class="btn-secondary" onclick="downloadPNG()">PNG保存</button>
-            <button class="mobile-actions-close" onclick="toggleMobileMenu()">閉じる</button>
-        </div>
-    </div>
 
     <div class="main-container">
         <div class="sidebar">
@@ -58,6 +47,20 @@
             <div class="zoom-overlay" onclick="resetView()">
                 <span class="reset">リセット</span>
                 <span>ホイール拡大 / ドラッグ移動</span>
+            </div>
+            <div class="viewport-menu-wrap">
+                <button id="viewport-menu-btn" class="viewport-menu-btn" onclick="toggleMobileMenu()" aria-label="メニュー">
+                    <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                </button>
+                <div id="mobile-actions-modal" class="mobile-actions-popover">
+                    <button class="popover-item" onclick="document.getElementById('csvInput').click(); closeMobileMenu()">CSV読込</button>
+                    <div class="popover-divider"></div>
+                    <button class="popover-item" onclick="exportCSV(); closeMobileMenu()">CSV保存</button>
+                    <div class="popover-divider"></div>
+                    <button class="popover-item" onclick="downloadSVG(); closeMobileMenu()">SVG保存</button>
+                    <div class="popover-divider"></div>
+                    <button class="popover-item" onclick="downloadPNG(); closeMobileMenu()">PNG保存</button>
+                </div>
             </div>
         </div>
     </div>

@@ -435,6 +435,17 @@ function toggleSidebar() {
 function toggleMobileMenu() {
     document.getElementById('mobile-actions-modal').classList.toggle('open');
 }
+function closeMobileMenu() {
+    document.getElementById('mobile-actions-modal').classList.remove('open');
+}
+// メニュー外タップで自動的に閉じる
+document.addEventListener('click', e => {
+    const menu = document.getElementById('mobile-actions-modal');
+    const btn = document.getElementById('viewport-menu-btn');
+    if (menu.classList.contains('open') && !menu.contains(e.target) && !btn.contains(e.target)) {
+        closeMobileMenu();
+    }
+});
 // 駅描画位置計算
 function calculateGeometry() {
     const positions = {};

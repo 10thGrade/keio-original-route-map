@@ -49,11 +49,7 @@ a.header {
     color: #F99F48;
 }
 
-.mobile-menu-btn {
-    display: none;
-}
-
-.mobile-actions-modal {
+.viewport-menu-wrap {
     display: none;
 }
 
@@ -298,53 +294,77 @@ span.reset {
         display: none;
     }
 
-    .mobile-menu-btn {
+    .viewport-menu-wrap {
         display: block;
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        z-index: 15;
+    }
+
+    .viewport-menu-btn {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        background: rgba(255, 255, 255, 0.55);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18), inset 0 1px 1px rgba(255, 255, 255, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        cursor: pointer;
+    }
+
+    .viewport-menu-btn .dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: #333;
+    }
+
+    .mobile-actions-popover {
+        display: none;
+        position: absolute;
+        top: 52px;
+        right: 0;
+        width: 200px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(24px) saturate(180%);
+        -webkit-backdrop-filter: blur(24px) saturate(180%);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.6);
+        overflow: hidden;
+    }
+
+    .mobile-actions-popover.open {
+        display: block;
+    }
+
+    .popover-item {
+        display: block;
+        width: 100%;
+        padding: 14px 16px;
         background: none;
         border: none;
-        color: white;
-        font-size: 26px;
-        line-height: 1;
-        padding: 4px 8px;
+        text-align: left;
+        font-size: 15px;
+        font-weight: 600;
+        color: #1B435D;
         cursor: pointer;
     }
 
-    .mobile-actions-modal.open {
-        display: flex;
-        position: fixed;
-        inset: 0;
-        z-index: 30;
-        justify-content: center;
-        align-items: center;
-        background: rgba(0, 0, 0, 0.5);
+    .popover-item:active {
+        background: rgba(0, 0, 0, 0.06);
     }
 
-    .mobile-actions-content {
-        background: white;
-        border-radius: 16px;
-        padding: 20px;
-        width: 80%;
-        max-width: 340px;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .mobile-actions-content .btn-csv,
-    .mobile-actions-content .btn-primary,
-    .mobile-actions-content .btn-secondary {
-        width: 100%;
-    }
-
-    .mobile-actions-close {
-        width: 100%;
-        padding: 10px;
-        background: #eee;
-        color: #333;
-        border: none;
-        border-radius: 6px;
-        font-weight: bold;
-        cursor: pointer;
+    .popover-divider {
+        height: 1px;
+        background: rgba(0, 0, 0, 0.1);
+        margin: 0 12px;
     }
 
     .line-group-title {
