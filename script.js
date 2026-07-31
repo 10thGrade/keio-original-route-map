@@ -315,6 +315,11 @@ function initPanZoom() {
     };
 
     elmView.onpointerdown = e => {
+        if (e.target.closest('.zoom-overlay, .viewport-menu-wrap')) {
+            // オーバーレイ上のボタンを操作中はパン/ピンチ操作を開始しない
+            // (setPointerCaptureするとclickイベントがボタンまで届かなくなるため)
+            return;
+        }
         elmView.setPointerCapture(e.pointerId);
         activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
