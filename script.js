@@ -5,6 +5,13 @@ const TRAIN_TYPES = [
     { rank: 2, name: "快速", color: "#0F4E8C" },
     { rank: 1, name: "各停", color: "#818285" }
 ];
+const RANK_PASS = 0;    // 通過
+const RANK_VACANT = -1; // 更地
+const STATION_STATUS = [
+    { rank: RANK_PASS, name: "通過" },
+    { rank: RANK_VACANT, name: "更地" }
+];
+const INO_RANK_LEVELS = [RANK_VACANT, RANK_PASS, 1, 4]; // 更地, 通過, 各停, 急行
 const COLOR_KEIO_MAGENTA = "#dd0077";
 const COLOR_KEIO_BLUE = "#0F4E8C";
 
@@ -146,20 +153,16 @@ function initApp() {
             elmCtrlStation.className = 'station-control';
             
             if (station.group === "ino") {
-                if (stationRanks[station.id] !== 1 && stationRanks[station.id] !== 4) {
+                if (!INO_RANK_LEVELS.includes(stationRanks[station.id])) {
                     stationRanks[station.id] = 1;
                 }
-                if (stationRanks[station.id] === 4) {
-                    sliderValue = 1;
-                } else {
-                    sliderValue = 0;
-                }
+                const sliderValue = INO_RANK_LEVELS.indexOf(stationRanks[station.id]);
                 elmCtrlStation.innerHTML = `
                     <div class="station-header">
                         <span class="station-name">${station.name}</span>
                         <span class="rank-value" id="label-${station.id}">${getRankName(stationRanks[station.id])}</span>
                     </div>
-                    <input type="range" min="0" max="1" step="1" value="${sliderValue}" oninput="updateRank('${station.id}', this.value, '${groupName}')">
+                    <input type="range" min="0" max="${INO_RANK_LEVELS.length - 1}" step="1" value="${sliderValue}" oninput="updateRank('${station.id}', this.value, '${groupName}')">
                 `;
             } else {
                 elmCtrlStation.innerHTML = `
@@ -167,7 +170,7 @@ function initApp() {
                         <span class="station-name">${station.name}</span>
                         <span class="rank-value" id="label-${station.id}">${getRankName(stationRanks[station.id])}</span>
                     </div>
-                    <input type="range" min="1" max="5" value="${stationRanks[station.id]}" oninput="updateRank('${station.id}', this.value, '${groupName}')">
+                    <input type="range" min="-1" max="5" value="${stationRanks[station.id]}" oninput="updateRank('${station.id}', this.value, '${groupName}')">
                 `;
             }
             elmCtrls.appendChild(elmCtrlStation);
@@ -183,11 +186,7 @@ function initApp() {
 // 駅ランク更新
 function updateRank(stationId, rank, group) { 
     if (group == "ino") {
-        if (parseInt(rank) === 1) {
-            actualRank = 4;
-        } else {
-            actualRank = 1;
-        }
+        const actualRank = INO_RANK_LEVELS[parseInt(rank)];
         stationRanks[stationId] = actualRank;
         document.getElementById(`label-${stationId}`).innerText = getRankName(actualRank);
     } else {
@@ -584,6 +583,7 @@ function drawMap() {
         const potision = positions[station.id];
         const rank = stationRanks[station.id];
         const isRank5 = (rank === 5);
+        const isVacant = (rank === RANK_VACANT);
         const stationNameLength = station.name.length * 32;
 
         if (potision.layout === 'horizontal') {
@@ -611,31 +611,33 @@ function drawMap() {
                     drawDot(elmCanvas, potision.x + getShiftX(i), potision.y + i * LINE_GAP, t.color);
                 }
             });
-            // 駅番号バッジ描画
-            drawBadge(elmCanvas, baseX, baseY + 45, station.num, "KO", getRankColor(5));
-            // 駅名描画
-            drawStationName(elmCanvas, baseX, baseY + 65, station.name, isRank5, "vertical");
+            if (!isVacant) {
+                // 駅番号バッジ描画
+                drawBadge(elmCanvas, baseX, baseY + 45, station.num, "KO", getRankColor(5));
+                // 駅名描画
+                drawStationName(elmCanvas, baseX, baseY + 65, station.name, isRank5, "vertical");
+            }
         } else if (potision.layout === 'rising_right') {
             const kitanoP = positions['kitano'];
+            const dotXAt = (i) => {
+                const r = BEND_RADIUS_BASE + i * LINE_GAP;
+                const ex = kitanoP.x + r * Math.sin(SLANT_ANGLE);
+                const ey = (kitanoP.y + i * LINE_GAP) - r * (1 - Math.cos(SLANT_ANGLE));
+                return ex + (ey - potision.y) / Math.tan(SLANT_ANGLE);
+            };
             let minDotX = 99999, maxDotX = -99999;
             TRAIN_TYPES.forEach((t, i) => {
                 if (stationRanks[station.id] >= t.rank) {
-                    const r = BEND_RADIUS_BASE + i * LINE_GAP;
-                    const ex = kitanoP.x + r * Math.sin(SLANT_ANGLE);
-                    const ey = (kitanoP.y + i * LINE_GAP) - r * (1 - Math.cos(SLANT_ANGLE));
-                    const dotX = ex + (ey - potision.y) / Math.tan(SLANT_ANGLE);
+                    const dotX = dotXAt(i);
                     if (dotX < minDotX) {
                         minDotX = dotX;
                     }
                     if (dotX > maxDotX) {
                         maxDotX = dotX;
                     }
-                    if (i === 4) {
-                        potision._outerX = dotX;
-                    }
                 }
             });
-            const baseX = (potision._outerX || maxDotX) + 45;
+            const baseX = dotXAt(4) + 45;
             const baseY = potision.y;
             if (isRank5) {
                 const capsuleWidth = maxDotX - minDotX + (20 * 2);
@@ -648,18 +650,16 @@ function drawMap() {
             }
             TRAIN_TYPES.forEach((t, i) => {
                 if (stationRanks[station.id] >= t.rank) {
-                    const r = BEND_RADIUS_BASE + i * LINE_GAP;
-                    const ex = kitanoP.x + r * Math.sin(SLANT_ANGLE);
-                    const ey = (kitanoP.y + i * LINE_GAP) - r * (1 - Math.cos(SLANT_ANGLE));
-                    const dotX = ex + (ey - potision.y) / Math.tan(SLANT_ANGLE);
                     // 停車点描画
-                    drawDot(elmCanvas, dotX, potision.y, t.color);
+                    drawDot(elmCanvas, dotXAt(i), potision.y, t.color);
                 }
             });
-            // 駅番号バッジ描画
-            drawBadge(elmCanvas, baseX, baseY, station.num, "KO", getRankColor(5));
-            // 駅名描画
-            drawStationName(elmCanvas, baseX + 20, baseY, station.name, isRank5, "left");
+            if (!isVacant) {
+                // 駅番号バッジ描画
+                drawBadge(elmCanvas, baseX, baseY, station.num, "KO", getRankColor(5));
+                // 駅名描画
+                drawStationName(elmCanvas, baseX + 20, baseY, station.name, isRank5, "left");
+            }
         }
     });
 
@@ -736,7 +736,8 @@ function drawInokashiraLine(canvas, positions) {
             const p = positions[s.id];
             const rank = stationRanks[s.id];
             const isExpress = (rank === 4);
-            
+            const isVacant = (rank === RANK_VACANT);
+
             let lxExp = 0, lyExp = 0, lxLoc = 0, lyLoc = 0;
             lxExp = p.x + dxExp;
             lyExp = p.y + dyExp;
@@ -758,14 +759,18 @@ function drawInokashiraLine(canvas, positions) {
                 drawRect(canvas, p.x + dxLoc - 26, p.y + dyLoc + 20, 52, 80 + (s.name.length * 32), 26, 26, getRankColor(4));
             }
             // 停車点
-            drawDot(canvas, lxLoc, lyLoc, getRankColor(1));
+            if (rank >= 1) {
+                drawDot(canvas, lxLoc, lyLoc, getRankColor(1));
+            }
             if (isExpress) {
                 drawDot(canvas, lxExp, lyExp, getRankColor(4));
             }
-            // 駅番号バッジ
-            drawBadge(canvas, lxLoc, lyLoc + 45, s.num, "IN", COLOR_KEIO_BLUE);
-            // 駅名
-            drawStationName(canvas, lxLoc + 15, lyLoc + 70, s.name, isExpress, "verticalIno");
+            if (!isVacant) {
+                // 駅番号バッジ
+                drawBadge(canvas, lxLoc, lyLoc + 45, s.num, "IN", COLOR_KEIO_BLUE);
+                // 駅名
+                drawStationName(canvas, lxLoc + 15, lyLoc + 70, s.name, isExpress, "verticalIno");
+            }
         });
     }
 }
@@ -773,7 +778,7 @@ function drawInokashiraLine(canvas, positions) {
 // 関数: ユーティリティ
 // ランク名取得
 function getRankName(rank) {
-    return TRAIN_TYPES.find(t => t.rank == rank)?.name || "";
+    return TRAIN_TYPES.find(t => t.rank == rank)?.name || STATION_STATUS.find(s => s.rank == rank)?.name || "";
 }
 // ランク色取得
 function getRankColor(rank) {
