@@ -130,6 +130,7 @@ input[type="range"] {
     position: relative;
     overflow: hidden;
     cursor: grab;
+    touch-action: none;
 }
 
 .viewport:active {

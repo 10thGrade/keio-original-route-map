@@ -279,14 +279,61 @@ function initPanZoom() {
     const app = () => {
         elmLayer.style.transform = `translate(${viewState.x}px, ${viewState.y}px) scale(${viewState.scale})`;
     };
-    elmView.onmousedown = e => {
-        mouseGrab = true;
-        lx = e.clientX;
-        ly = e.clientY;
-        elmView.style.cursor = 'grabbing';
+
+    // マウスドラッグ・タッチパン・ピンチズームを共通のPointer Eventsで扱う
+    const activePointers = new Map(); // pointerId -> {x, y}
+    let pinchStartDist = 0, pinchStartScale = 1;
+
+    const getActivePoints = () => Array.from(activePointers.values());
+    const getPinchMidpoint = () => {
+        const [a, b] = getActivePoints();
+        return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
     };
-    window.onmousemove = e => {
-        if (mouseGrab) {
+    const getPinchDistance = () => {
+        const [a, b] = getActivePoints();
+        return Math.hypot(a.x - b.x, a.y - b.y);
+    };
+
+    elmView.onpointerdown = e => {
+        elmView.setPointerCapture(e.pointerId);
+        activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+        if (activePointers.size === 1) {
+            mouseGrab = true;
+            lx = e.clientX;
+            ly = e.clientY;
+            elmView.style.cursor = 'grabbing';
+        } else if (activePointers.size === 2) {
+            mouseGrab = false;
+            pinchStartDist = getPinchDistance();
+            pinchStartScale = viewState.scale;
+        }
+    };
+    elmView.onpointermove = e => {
+        if (!activePointers.has(e.pointerId)) {
+            return;
+        }
+        activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+        if (activePointers.size === 2) {
+            const rect = elmView.getBoundingClientRect();
+            const midpoint = getPinchMidpoint();
+            const midX = midpoint.x - rect.left;
+            const midY = midpoint.y - rect.top;
+
+            const oldScale = viewState.scale;
+            let newScale = pinchStartScale * (getPinchDistance() / pinchStartDist);
+            newScale = Math.min(Math.max(0.1, newScale), 5.0);
+
+            if (newScale !== oldScale) {
+                const ratio = newScale / oldScale;
+                viewState.x = midX - (midX - viewState.x) * ratio;
+                viewState.y = midY - (midY - viewState.y) * ratio;
+
+                viewState.scale = newScale;
+                app();
+            }
+        } else if (activePointers.size === 1 && mouseGrab) {
             viewState.x += e.clientX - lx;
             viewState.y += e.clientY - ly;
             lx = e.clientX;
@@ -294,10 +341,26 @@ function initPanZoom() {
             app();
         }
     };
-    window.onmouseup = () => {
-        mouseGrab = false;
-        elmView.style.cursor = 'grab';
+    const endPointer = e => {
+        if (!activePointers.has(e.pointerId)) {
+            return;
+        }
+        activePointers.delete(e.pointerId);
+
+        if (activePointers.size === 1) {
+            // 2本指→1本指への遷移時、残った指の座標でlx/lyを再セットしジャンプを防ぐ
+            const [remaining] = getActivePoints();
+            lx = remaining.x;
+            ly = remaining.y;
+            mouseGrab = true;
+        } else if (activePointers.size === 0) {
+            mouseGrab = false;
+            elmView.style.cursor = 'grab';
+        }
     };
+    elmView.onpointerup = endPointer;
+    elmView.onpointercancel = endPointer;
+
     elmView.onwheel = e => {
         e.preventDefault();
 
