@@ -103,6 +103,15 @@ a.header {
     display: none;
 }
 
+.line-group-body {
+    display: grid;
+    grid-template-rows: 1fr;
+}
+
+.line-group-body-inner {
+    overflow: hidden;
+}
+
 .station-control {
     margin-bottom: 10px;
     border-bottom: 1px solid #AAAEB3;
@@ -316,6 +325,11 @@ span.reset {
         justify-content: center;
         gap: 3px;
         cursor: pointer;
+        transition: transform 0.15s ease;
+    }
+
+    .viewport-menu-btn:active {
+        transform: scale(0.92);
     }
 
     .viewport-menu-btn .dot {
@@ -326,7 +340,6 @@ span.reset {
     }
 
     .mobile-actions-popover {
-        display: none;
         position: absolute;
         top: 52px;
         right: 0;
@@ -338,10 +351,17 @@ span.reset {
         -webkit-backdrop-filter: blur(24px) saturate(180%);
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.6);
         overflow: hidden;
+        opacity: 0;
+        transform: scale(0.9) translateY(-6px);
+        transform-origin: top right;
+        transition: opacity 0.18s ease, transform 0.18s cubic-bezier(0.32, 0.72, 0, 1);
+        pointer-events: none;
     }
 
     .mobile-actions-popover.open {
-        display: block;
+        opacity: 1;
+        transform: scale(1) translateY(0);
+        pointer-events: auto;
     }
 
     .popover-item {
@@ -383,8 +403,13 @@ span.reset {
         transform: rotate(-90deg);
     }
 
-    .line-group:not(.expanded) .station-control {
-        display: none;
+    .line-group-body {
+        grid-template-rows: 0fr;
+        transition: grid-template-rows 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    .line-group.expanded .line-group-body {
+        grid-template-rows: 1fr;
     }
 }
 
@@ -410,6 +435,11 @@ span.reset {
         box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
         cursor: pointer;
         margin-top: -11px;
+        transition: transform 0.15s ease;
+    }
+
+    input[type="range"]:active::-webkit-slider-thumb {
+        transform: scale(1.15);
     }
 
     input[type="range"]::-moz-range-track {
@@ -432,6 +462,11 @@ span.reset {
         border: 2px solid white;
         box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
         cursor: pointer;
+        transition: transform 0.15s ease;
+    }
+
+    input[type="range"]:active::-moz-range-thumb {
+        transform: scale(1.15);
     }
 
     .station-control {
@@ -457,5 +492,16 @@ span.reset {
     button.btn-csv {
         padding: 14px;
         font-size: 15px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .line-group-body,
+    .line-group-chevron,
+    .mobile-actions-popover,
+    .viewport-menu-btn,
+    input[type="range"]::-webkit-slider-thumb,
+    input[type="range"]::-moz-range-thumb {
+        transition: none !important;
     }
 }

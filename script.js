@@ -135,6 +135,13 @@ function initApp() {
         elmGrpTitle.onclick = () => elmGroup.classList.toggle('expanded');
         elmGroup.appendChild(elmGrpTitle);
 
+        const elmGrpBody = document.createElement('div');
+        elmGrpBody.className = 'line-group-body';
+        const elmGrpBodyInner = document.createElement('div');
+        elmGrpBodyInner.className = 'line-group-body-inner';
+        elmGrpBody.appendChild(elmGrpBodyInner);
+        elmGroup.appendChild(elmGrpBody);
+
         STATIONS.filter(s => s.group === groupName).forEach(station => {
             if (stationRanks[station.id] === undefined) {
                 stationRanks[station.id] = station.defaultRank;
@@ -164,7 +171,7 @@ function initApp() {
                 `;
             }
             applySliderFill(elmCtrlStation.querySelector('input'));
-            elmGroup.appendChild(elmCtrlStation);
+            elmGrpBodyInner.appendChild(elmCtrlStation);
         });
         elmCtrls.appendChild(elmGroup);
     }
