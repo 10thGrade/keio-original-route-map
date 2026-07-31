@@ -152,7 +152,7 @@ function initApp() {
                         <span class="station-name">${station.name}</span>
                         <span class="rank-value" id="label-${station.id}">${getRankName(stationRanks[station.id])}</span>
                     </div>
-                    <input type="range" min="0" max="${INO_RANK_LEVELS.length - 1}" step="1" value="${sliderValue}" oninput="updateRank('${station.id}', this.value, '${groupName}')">
+                    <input type="range" min="0" max="${INO_RANK_LEVELS.length - 1}" step="1" value="${sliderValue}" oninput="updateRank(this, '${station.id}', '${groupName}')">
                 `;
             } else {
                 elmCtrlStation.innerHTML = `
@@ -160,9 +160,10 @@ function initApp() {
                         <span class="station-name">${station.name}</span>
                         <span class="rank-value" id="label-${station.id}">${getRankName(stationRanks[station.id])}</span>
                     </div>
-                    <input type="range" min="-1" max="5" value="${stationRanks[station.id]}" oninput="updateRank('${station.id}', this.value, '${groupName}')">
+                    <input type="range" min="-1" max="5" value="${stationRanks[station.id]}" oninput="updateRank(this, '${station.id}', '${groupName}')">
                 `;
             }
+            applySliderFill(elmCtrlStation.querySelector('input'));
             elmGroup.appendChild(elmCtrlStation);
         });
         elmCtrls.appendChild(elmGroup);
@@ -175,16 +176,22 @@ function initApp() {
     }
 }
 // 駅ランク更新
-function updateRank(stationId, rank, group) { 
+function updateRank(input, stationId, group) {
     if (group == "ino") {
-        const actualRank = INO_RANK_LEVELS[parseInt(rank)];
+        const actualRank = INO_RANK_LEVELS[parseInt(input.value)];
         stationRanks[stationId] = actualRank;
         document.getElementById(`label-${stationId}`).innerText = getRankName(actualRank);
     } else {
-        stationRanks[stationId] = parseInt(rank); 
-        document.getElementById(`label-${stationId}`).innerText = getRankName(parseInt(rank)); 
+        stationRanks[stationId] = parseInt(input.value);
+        document.getElementById(`label-${stationId}`).innerText = getRankName(parseInt(input.value));
     }
-    drawMap(); 
+    applySliderFill(input);
+    drawMap();
+}
+// スライダーの塗りつぶし(現在値まで)を反映
+function applySliderFill(input) {
+    const percent = ((parseFloat(input.value) - parseFloat(input.min)) / (parseFloat(input.max) - parseFloat(input.min))) * 100;
+    input.style.setProperty('--range-percent', `${percent}%`);
 }
 // CSV出力
 function exportCSV() {

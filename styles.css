@@ -396,7 +396,7 @@ span.reset {
     input[type="range"]::-webkit-slider-runnable-track {
         height: 6px;
         border-radius: 3px;
-        background: #ddd;
+        background: linear-gradient(to right, #78BBE6 var(--range-percent, 0%), #ddd var(--range-percent, 0%));
     }
 
     input[type="range"]::-webkit-slider-thumb {
@@ -416,6 +416,12 @@ span.reset {
         height: 6px;
         border-radius: 3px;
         background: #ddd;
+    }
+
+    input[type="range"]::-moz-range-progress {
+        height: 6px;
+        border-radius: 3px;
+        background: #78BBE6;
     }
 
     input[type="range"]::-moz-range-thumb {
