@@ -17,7 +17,18 @@
                 <li class="nav-list-item"><a href="https://github.com/10thGrade/keio-original-route-map/" target="_blank">GitHub</a></li>
             </ul>
         </nav>
+        <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="メニュー">&#9776;</button>
     </header>
+
+    <div id="mobile-actions-modal" class="mobile-actions-modal">
+        <div class="mobile-actions-content">
+            <button class="btn-csv" onclick="document.getElementById('csvInput').click()">CSV読込</button>
+            <button class="btn-csv" onclick="exportCSV()">CSV保存</button>
+            <button class="btn-primary" onclick="downloadSVG()">SVG保存</button>
+            <button class="btn-secondary" onclick="downloadPNG()">PNG保存</button>
+            <button class="mobile-actions-close" onclick="toggleMobileMenu()">閉じる</button>
+        </div>
+    </div>
 
     <div class="main-container">
         <div class="sidebar">

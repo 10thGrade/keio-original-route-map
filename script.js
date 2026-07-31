@@ -424,6 +424,10 @@ function resetView() {
 function toggleSidebar() {
     document.querySelector('.sidebar').classList.toggle('expanded');
 }
+// CSV・画像出力メニュー(モバイル)の開閉切り替え
+function toggleMobileMenu() {
+    document.getElementById('mobile-actions-modal').classList.toggle('open');
+}
 // 駅描画位置計算
 function calculateGeometry() {
     const positions = {};

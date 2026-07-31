@@ -49,6 +49,14 @@ a.header {
     color: #F99F48;
 }
 
+.mobile-menu-btn {
+    display: none;
+}
+
+.mobile-actions-modal {
+    display: none;
+}
+
 .main-container {
     display: flex;
     flex: 1;
@@ -280,5 +288,58 @@ span.reset {
 
     .sidebar-header, .sidebar-footer {
         display: none;
+    }
+
+    nav {
+        display: none;
+    }
+
+    .mobile-menu-btn {
+        display: block;
+        background: none;
+        border: none;
+        color: white;
+        font-size: 26px;
+        line-height: 1;
+        padding: 4px 8px;
+        cursor: pointer;
+    }
+
+    .mobile-actions-modal.open {
+        display: flex;
+        position: fixed;
+        inset: 0;
+        z-index: 30;
+        justify-content: center;
+        align-items: center;
+        background: rgba(0, 0, 0, 0.5);
+    }
+
+    .mobile-actions-content {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        width: 80%;
+        max-width: 340px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .mobile-actions-content .btn-csv,
+    .mobile-actions-content .btn-primary,
+    .mobile-actions-content .btn-secondary {
+        width: 100%;
+    }
+
+    .mobile-actions-close {
+        width: 100%;
+        padding: 10px;
+        background: #eee;
+        color: #333;
+        border: none;
+        border-radius: 6px;
+        font-weight: bold;
+        cursor: pointer;
     }
 }
