@@ -367,3 +367,69 @@ span.reset {
         display: none;
     }
 }
+
+@media (max-width: 768px), (pointer: coarse) {
+    input[type="range"] {
+        height: 32px;
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track {
+        height: 6px;
+        border-radius: 3px;
+        background: #ddd;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #78BBE6;
+        border: 2px solid white;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+        margin-top: -11px;
+    }
+
+    input[type="range"]::-moz-range-track {
+        height: 6px;
+        border-radius: 3px;
+        background: #ddd;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #78BBE6;
+        border: 2px solid white;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+    }
+
+    .station-control {
+        margin-bottom: 18px;
+        padding-bottom: 10px;
+    }
+
+    .station-header {
+        margin-bottom: 8px;
+    }
+
+    .station-name {
+        font-size: 16px;
+    }
+
+    .rank-value {
+        font-size: 13px;
+        padding: 3px 8px;
+    }
+
+    button.btn-primary,
+    button.btn-secondary,
+    button.btn-csv {
+        padding: 14px;
+        font-size: 15px;
+    }
+}
