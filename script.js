@@ -617,25 +617,25 @@ function drawMap() {
             drawStationName(elmCanvas, baseX, baseY + 65, station.name, isRank5, "vertical");
         } else if (potision.layout === 'rising_right') {
             const kitanoP = positions['kitano'];
+            const dotXAt = (i) => {
+                const r = BEND_RADIUS_BASE + i * LINE_GAP;
+                const ex = kitanoP.x + r * Math.sin(SLANT_ANGLE);
+                const ey = (kitanoP.y + i * LINE_GAP) - r * (1 - Math.cos(SLANT_ANGLE));
+                return ex + (ey - potision.y) / Math.tan(SLANT_ANGLE);
+            };
             let minDotX = 99999, maxDotX = -99999;
             TRAIN_TYPES.forEach((t, i) => {
                 if (stationRanks[station.id] >= t.rank) {
-                    const r = BEND_RADIUS_BASE + i * LINE_GAP;
-                    const ex = kitanoP.x + r * Math.sin(SLANT_ANGLE);
-                    const ey = (kitanoP.y + i * LINE_GAP) - r * (1 - Math.cos(SLANT_ANGLE));
-                    const dotX = ex + (ey - potision.y) / Math.tan(SLANT_ANGLE);
+                    const dotX = dotXAt(i);
                     if (dotX < minDotX) {
                         minDotX = dotX;
                     }
                     if (dotX > maxDotX) {
                         maxDotX = dotX;
                     }
-                    if (i === 4) {
-                        potision._outerX = dotX;
-                    }
                 }
             });
-            const baseX = (potision._outerX || maxDotX) + 45;
+            const baseX = dotXAt(4) + 45;
             const baseY = potision.y;
             if (isRank5) {
                 const capsuleWidth = maxDotX - minDotX + (20 * 2);
@@ -648,12 +648,8 @@ function drawMap() {
             }
             TRAIN_TYPES.forEach((t, i) => {
                 if (stationRanks[station.id] >= t.rank) {
-                    const r = BEND_RADIUS_BASE + i * LINE_GAP;
-                    const ex = kitanoP.x + r * Math.sin(SLANT_ANGLE);
-                    const ey = (kitanoP.y + i * LINE_GAP) - r * (1 - Math.cos(SLANT_ANGLE));
-                    const dotX = ex + (ey - potision.y) / Math.tan(SLANT_ANGLE);
                     // 停車点描画
-                    drawDot(elmCanvas, dotX, potision.y, t.color);
+                    drawDot(elmCanvas, dotXAt(i), potision.y, t.color);
                 }
             });
             // 駅番号バッジ描画
