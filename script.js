@@ -14,6 +14,7 @@ const STATION_STATUS = [
 const INO_RANK_LEVELS = [RANK_VACANT, RANK_PASS, 1, 4]; // 更地, 通過, 各停, 急行
 const COLOR_KEIO_MAGENTA = "#dd0077";
 const COLOR_KEIO_BLUE = "#0F4E8C";
+const ATTRIBUTION_TEXT = "Made by keio.10th-grade.com";
 
 // ジオメトリ設定
 const LINE_WIDTH = 13;  // 線路幅
@@ -269,7 +270,7 @@ function downloadSVG() {
     attributionText.setAttribute("font-family", "Arial, sans-serif");
     attributionText.setAttribute("font-size", "30");
     attributionText.setAttribute("fill", "#333");
-    attributionText.textContent = "Made by https://10thgrade.github.io/keio-original-route-map/";
+    attributionText.textContent = ATTRIBUTION_TEXT;
     elmSvg.appendChild(attributionText);
     
     const blob = new Blob([new XMLSerializer().serializeToString(elmSvg)], { type: "image/svg+xml;charset=utf-8" });
@@ -277,26 +278,74 @@ function downloadSVG() {
 
     elmSvg.removeChild(attributionText);
 }
+// PNG共有用のベース画像キャッシュ(クレジット文字は含まない)
+// iOS Safariのnavigator.share()は、クリックからの同期処理の連鎖内で呼ばないと
+// ユーザー操作起因の呼び出しとみなされず失敗するため、SVG→画像のデコードを
+// 事前に済ませておき、クリック時は同期処理のみで完結できるようにする
+let cachedMapImage = null;
+let cacheRefreshTimer = null;
+function refreshMapImageCache() {
+    clearTimeout(cacheRefreshTimer);
+    cacheRefreshTimer = setTimeout(() => {
+        const elmSvg = document.getElementById('mapSvg');
+        const img = new Image();
+        img.onload = () => {
+            cachedMapImage = img;
+        };
+        img.src = "data:image/svg+xml;charset=utf-8;base64," + btoa(unescape(encodeURIComponent(new XMLSerializer().serializeToString(elmSvg))));
+    }, 300);
+}
+// data URL(PNG)を同期的にBlobへ変換
+function dataUrlToBlob(dataUrl) {
+    const [meta, base64] = dataUrl.split(',');
+    const mime = meta.match(/:(.*?);/)[1];
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+    return new Blob([bytes], { type: mime });
+}
 // ダウンロード(PNG形式)
 function downloadPNG() {
     const elmPng = document.getElementById('mapSvg');
+    const width = parseInt(elmPng.getAttribute("width"));
     const height = parseInt(elmPng.getAttribute("height"));
-    
+
+    if (cachedMapImage && cachedMapImage.naturalWidth === width && cachedMapImage.naturalHeight === height) {
+        // キャッシュ済み画像があれば、クリックから同期的に完結させて共有シートを開く
+        const elmCanvas = document.createElement('canvas');
+        elmCanvas.width = width;
+        elmCanvas.height = height;
+        const ctx = elmCanvas.getContext('2d');
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(cachedMapImage, 0, 0);
+        ctx.font = "30px Arial, sans-serif";
+        ctx.fillStyle = "#333";
+        ctx.fillText(ATTRIBUTION_TEXT, 20, height - 20);
+
+        const blob = dataUrlToBlob(elmCanvas.toDataURL("image/png"));
+        shareOrDownload(blob, "keio_original_map.png", "image/png");
+        return;
+    }
+
+    // キャッシュが未準備の場合のフォールバック(従来の非同期経路)
     const attributionText = document.createElementNS("http://www.w3.org/2000/svg", "text");
     attributionText.setAttribute("x", 20);
     attributionText.setAttribute("y", height - 20);
     attributionText.setAttribute("font-family", "Arial, sans-serif");
     attributionText.setAttribute("font-size", "30");
     attributionText.setAttribute("fill", "#333");
-    attributionText.textContent = "Made by https://10thgrade.github.io/keio-original-route-map/";
+    attributionText.textContent = ATTRIBUTION_TEXT;
     elmPng.appendChild(attributionText);
 
     const elmCanvas = document.createElement('canvas');
-    elmCanvas.width = parseInt(elmPng.getAttribute("width"));
-    elmCanvas.height = parseInt(elmPng.getAttribute("height"));
+    elmCanvas.width = width;
+    elmCanvas.height = height;
     const ctx = elmCanvas.getContext('2d');
     ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, parseInt(elmPng.getAttribute("width")), parseInt(elmPng.getAttribute("height")));
+    ctx.fillRect(0, 0, width, height);
     const elmImage = new Image();
     elmImage.onload = () => {
         ctx.drawImage(elmImage, 0, 0);
@@ -810,6 +859,8 @@ function drawMap() {
 
     // 路線図ロゴ・ラベル描画
     drawLogoAndLabels(elmCanvas, positions);
+
+    refreshMapImageCache();
 }
 // 井の頭線 描画関数
 function drawInokashiraLine(canvas, positions) {
